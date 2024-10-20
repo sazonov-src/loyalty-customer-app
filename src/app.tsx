@@ -7,7 +7,13 @@ import '@aws-amplify/ui-react/styles.css';
 import BonusHistory from './components/bonus-history';
 import ClientCard from './components/client-cart';
 
+import { generateClient } from 'aws-amplify/data';
+import { type Schema } from '../amplify/data/resource';
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 
+const client = generateClient<Schema>();
 Amplify.configure(outputs);
 
 export function App() {
@@ -16,32 +22,51 @@ export function App() {
     { id: '2', date: '2024-09-30', type: 'Списання', amount: -50 },
   ];  
 
+  const [ bonuses, setBonuses ] = useState<number | undefined>(undefined);
+
+  const getBonuses = async (id: string) => {
+    const { data: bonuses, errors } = await client.models.Bonuses.get({ id: id });
+    if (errors) {
+      console.error(errors);
+    }
+    setBonuses(bonuses?.bonusPoints || 0);
+  }
+
+  useEffect(() => {
+  }, [bonuses]);
+
   return (
-    <Authenticator>
-      {({ user }) => (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 className="text-3xl font-bold mb-4">
-          Доброго дня, {user?.signInDetails?.loginId}!
-        </h1>
+    <div className="
+      min-h-screen flex flex-col items-center justify-center p-6">
+      <Authenticator>
+        {({ signOut, user }) => (
 
-        {/* Карта клієнта */}
-        <div className="my-6">
-          <ClientCard clientId="123456789" bonusAmount={450} />
-        </div>
+          getBonuses(user?.userId || " "),  
+          <>
 
-        {/* Історія бонусних операцій */}
-        <div className="my-6">
-          <h2 className="text-2xl font-bold mb-4">Історія бонусів</h2>
-          <BonusHistory transactions={transactions} />
-        </div>
+            <h1 className="text-3xl font-bold mb-4">
+              Доброго дня, {user?.signInDetails?.loginId}! {user?.userId || " "}
+            </h1>
 
-          <footer class="fixed bottom-0 p-4 content-center">
-            <button class="logout-button">
-              Вихід
-            </button>
-          </footer>
-      </div>       
-      )}
-    </Authenticator>
+            <div className="my-6">
+              <ClientCard 
+                clientId={user?.userId || " "} bonusAmount={bonuses || 0}/>
+              <Skeleton />
+            </div>
+
+            <div className="my-6">
+              <h2 className="text-2xl font-bold mb-4">Історія бонусів</h2>
+              <BonusHistory transactions={transactions} />
+            </div>
+
+            <footer class="fixed bottom-0 p-4 content-center">
+              <button class="size-3 logout-button" onClick={signOut}>
+                Вихід
+              </button>
+            </footer>
+          </>
+        )}
+      </Authenticator>
+    </div>       
   );
 }
