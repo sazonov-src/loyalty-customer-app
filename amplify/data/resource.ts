@@ -4,7 +4,7 @@ import { postConfirmation } from "../auth/post-confirmation/resource";
 const schema = a.schema({
   Bonuses: a
     .model({
-      bonusPoints: a.integer().default(0)
+      bonusPoints: a.integer().default(0).required(),
     })
     .authorization((allow) => [
       allow.ownerDefinedIn("id").to(["get"]),
@@ -43,6 +43,7 @@ const schema = a.schema({
 .authorization((allow) => [
   allow.resource(postConfirmation)
 ])
+
 
 export type Schema = ClientSchema<typeof schema>;
 

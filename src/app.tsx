@@ -9,7 +9,6 @@ import ClientCard from './components/client-cart';
 
 import { generateClient } from 'aws-amplify/data';
 import { type Schema } from '../amplify/data/resource';
-import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from 'preact/hooks';
 import { useEffect } from 'preact/hooks';
 
@@ -25,11 +24,18 @@ export function App() {
   const [ bonuses, setBonuses ] = useState<number | undefined>(undefined);
 
   const getBonuses = async (id: string) => {
-    const { data: bonuses, errors } = await client.models.Bonuses.get({ id: id });
+    const { 
+      data: bonuses, 
+      errors 
+    } = await client.models.Bonuses.get({ id: id });
     if (errors) {
       console.error(errors);
+      return;
+    } else if (!bonuses) {
+      console.error('Bonuses fuild not found');
+      return;
     }
-    setBonuses(bonuses?.bonusPoints || 0);
+    setBonuses(bonuses.bonusPoints);
   }
 
   useEffect(() => {
@@ -39,19 +45,17 @@ export function App() {
     <div className="
       min-h-screen flex flex-col items-center justify-center p-6">
       <Authenticator>
-        {({ signOut, user }) => (
-
-          getBonuses(user?.userId || " "),  
+        {({ signOut, user }) => user ? (
+          getBonuses(user.userId),  
           <>
-
             <h1 className="text-3xl font-bold mb-4">
-              Доброго дня, {user?.signInDetails?.loginId}! {user?.userId || " "}
+              Доброго дня, {user.signInDetails?.loginId}! 
             </h1>
 
             <div className="my-6">
               <ClientCard 
-                clientId={user?.userId || " "} bonusAmount={bonuses || 0}/>
-              <Skeleton />
+                clientId={user.userId} bonusAmount={bonuses}
+              />
             </div>
 
             <div className="my-6">
@@ -60,11 +64,13 @@ export function App() {
             </div>
 
             <footer class="fixed bottom-0 p-4 content-center">
-              <button class="size-3 logout-button" onClick={signOut}>
+              <button class="size-1 logout-button" onClick={signOut}>
                 Вихід
               </button>
             </footer>
           </>
+        ) : ( 
+          <p>Користувач не авторизований</p> 
         )}
       </Authenticator>
     </div>       
