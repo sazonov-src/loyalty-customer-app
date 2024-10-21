@@ -21,7 +21,7 @@ export function App() {
     { id: '2', date: '2024-09-30', type: 'Списання', amount: -50 },
   ];  
 
-  const [ bonuses, setBonuses ] = useState<number | undefined>(undefined);
+  const [ bonuses, setBonuses ] = useState<Schema['Bonuses']['type'] | undefined>(undefined);
 
   const getBonuses = async (id: string) => {
     const { 
@@ -35,7 +35,7 @@ export function App() {
       console.error('Bonuses fuild not found');
       return;
     }
-    setBonuses(bonuses.bonusPoints);
+    setBonuses(bonuses);
   }
 
   useEffect(() => {
@@ -54,7 +54,8 @@ export function App() {
 
             <div className="my-6">
               <ClientCard 
-                clientId={user.userId} bonusAmount={bonuses}
+                clientId={user.userId} 
+                bonusAmount={bonuses?.bonusPoints}
               />
             </div>
 
